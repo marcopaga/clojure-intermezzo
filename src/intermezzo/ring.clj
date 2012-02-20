@@ -6,7 +6,8 @@
         ring.middleware.cookies
         ring.middleware.session
         ring.middleware.params
-        compojure.core)
+        compojure.core
+        intermezzo.core)
   (:require [compojure.route :as route]))
 
 (defn what-is-my-ip [request]
@@ -24,6 +25,8 @@
 
 (defroutes main-routes
   (GET "/" [] "<h1>Hello World</h1>")
-  (route/not-found "<h1>Page not found</h1>"))
+  (GET "/hello/:name" [name]
+       (hello name))
+  (route/not-found "<h1>Page not found!</h1>"))
 
 (def handler (wrap-stacktrace main-routes))
