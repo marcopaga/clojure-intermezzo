@@ -529,3 +529,22 @@
   (log-call "fetch-expenses-greater-than" username start-date end-date threshold)
   (let [all (fetch-all-expenses username start-date end-date)]
     (filter #(> (:amount %) threshold) all)))
+
+(defn parse-line [line]
+  (let [tokens (.split (.toLowerCase line) " ")]
+    (map #(vector % 1) tokens)))
+
+(defn combine [mapped]
+  (->> (group-by first mapped)
+       (map (fn [[k v]]
+              {k (map second v)}))
+       ))
+
+(defn sum [[k v]]
+  {k (apply + v)})
+
+(defn threaded-count-words [words]
+  (->> (parse-line words)
+       (combine)
+       (apply merge-with conj)
+       (map sum)))
