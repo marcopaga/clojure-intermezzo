@@ -1,7 +1,8 @@
 (ns intermezzo.core
-  (:import (java.text SimpleDateFormat)
-           (java.util Calendar TimeZone Date)
-           (java.text SimpleDateFormat)))
+  (:import  (java.text SimpleDateFormat)
+            (java.util Calendar TimeZone Date)
+            (java.text SimpleDateFormat))
+  (:use     clojure.contrib.io))
 
 (def visitors (ref #{}))
 
@@ -548,3 +549,29 @@
        (combine)
        (apply merge-with conj)
        (map sum)))
+
+(defn message-start? [message-line]
+  (or (.startsWith message-line "IN") (.startsWith message-line "OUT")))
+
+(defn next-message-lines [message-lines]
+  (let [head (first message-lines)
+        body (take-while (complement message-start?) (rest message-lines))]
+    (remove nil? (conj body head))))
+
+(defn next-message [message-lines]
+  (let [message-lines (next-message-lines message-lines)]
+    {:direction (first message-lines)
+     :text (nth message-lines 4)
+     :time (nth message-lines 3)}))
+
+(defn lazy-message-seq [message-lines]
+  (lazy-seq (let [message (next-message message-lines)]
+              (if (empty? message) nil)
+              (cons (remove empty? message)
+                    (lazy-message-seq (drop 6 message-lines))))))
+
+(defn message-seq [filename]
+  (lazy-message-seq (read-lines filename)))
+
+(defn test-read-icq-history[]
+  (message-seq "/home/marco/Dropbox/ICQHistory.txt"))
